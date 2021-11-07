@@ -16,16 +16,14 @@ public class PlayerMovement : MonoBehaviour {
 	[Header("Settings")]
 	public float walkSpeed = 3f;
 	public float runSpeed = 6f;
-	public float ZSpeed = 1.5f;
 	public float JumpForce = 8f;
-	public bool AllowDepthJumping;
 	public float AirAcceleration = 3f;
 	public float AirMaxSpeed = 3f;
 	public float rotationSpeed = 15f;
 	public float jumpRotationSpeed = 30f;
-	public float lookAheadDistance = .2f;
-	public float landRecoveryTime = .1f;
-	public float landTime = 0;
+	public float lookAheadDistance = 0.2f;
+	public float landRecoveryTime = 0.1f;
+	public float landTime = 0f;
 	public LayerMask CollisionLayer;
 
 	[Header("Audio")]
@@ -39,7 +37,7 @@ public class PlayerMovement : MonoBehaviour {
 
 	private bool isDead = false;
 	private bool JumpNextFixedUpdate;
-	private float jumpDownwardsForce = .3f;
+	private float jumpDownwardsForce = 0.3f;
 
 	//a list of states where movement can take place
 	private List<UNITSTATE> MovementStates = new List<UNITSTATE> {
@@ -80,17 +78,28 @@ public class PlayerMovement : MonoBehaviour {
 
 	}
 
-	void FixedUpdate() {
-		if(!MovementStates.Contains(playerState.currentState) || isDead) return;
+	void FixedUpdate()
+	{
+		/////////////////////
+		//ТЕСТ//
+		Debug.Log("real player speed: " + rb.velocity.magnitude + " u/s");
 
-		//defend
-		if(playerState.currentState == UNITSTATE.DEFEND){
+		/////////////////////
+
+
+		//Если не разрешенное состояние playerState или игрок мертв -> выход
+		if (!MovementStates.Contains(playerState.currentState) || isDead) return;
+
+		//блок
+		if (playerState.currentState == UNITSTATE.DEFEND)
+		{
 			TurnToCurrentDirection();
 			return;
 		}
 
 		//start a jump
-		if(JumpNextFixedUpdate){
+		if (JumpNextFixedUpdate)
+		{
 			Jump();
 			return;
 		}
@@ -119,27 +128,27 @@ public class PlayerMovement : MonoBehaviour {
 		TurnToCurrentDirection();
 	}
 
-	//movement on the ground
-	void MoveGrounded(){
+	//Движение на замле
+	void MoveGrounded()
+	{
+		//если приземляемся то ничего не делаем
+		if (playerState.currentState == UNITSTATE.LAND) return;
 
-		//do nothing when landing
-		if(playerState.currentState == UNITSTATE.LAND) return;
-
-		//move when there is no wall in front of us and input is detected
-		if(rb != null && (inputDirection.sqrMagnitude>0 && !WallInFront())) {
-
+		//если есть ригибоди и если инпут и перед игроком нет препятствия
+		if (rb != null && (inputDirection.sqrMagnitude > 0 && !WallInFront()))
+		{
 			//set movement speed to run speed or walk speed depending on the current state
 			float movementSpeed = playerState.currentState == UNITSTATE.RUN? runSpeed : walkSpeed;
 
-			rb.velocity = new Vector3( inputDirection.x * -movementSpeed, rb.velocity.y + Physics.gravity.y * Time.fixedDeltaTime, inputDirection.y * -ZSpeed);
-			if(animator) animator.SetAnimatorFloat("MovementSpeed", rb.velocity.magnitude);
-
-		} else {
-
+			rb.velocity = new Vector3(inputDirection.x * -movementSpeed, rb.velocity.y + Physics.gravity.y * Time.fixedDeltaTime, inputDirection.y * -movementSpeed);
+			if (animator) animator.SetAnimatorFloat("MovementSpeed", rb.velocity.magnitude);
+		}
+		else
+		{
 			//stop moving, but still apply gravity
 			rb.velocity = new Vector3(0, rb.velocity.y + Physics.gravity.y * Time.fixedDeltaTime, 0);
 
-			if(animator) animator.SetAnimatorFloat("MovementSpeed", 0);
+			if (animator) animator.SetAnimatorFloat("MovementSpeed", 0);
 			playerState.SetState(UNITSTATE.IDLE);
 		}
 
@@ -147,34 +156,20 @@ public class PlayerMovement : MonoBehaviour {
 		animator.SetAnimatorBool("Run", playerState.currentState == UNITSTATE.RUN);
 	}
 
-	//movement in the air
-	void MoveAirborne(){
-
+	//Движение в воздухе
+	void MoveAirborne()
+	{
 		//falling down
-		if(rb.velocity.y < 0.1f && playerState.currentState != UNITSTATE.KNOCKDOWN)	animator.SetAnimatorBool("Falling", true);
-
-		if(!WallInFront()) {
-
-			//movement direction based on current input
-			int dir = Mathf.Clamp(Mathf.RoundToInt(-inputDirection.x), -1, 1);
-			float xpeed = Mathf.Clamp(rb.velocity.x + AirMaxSpeed * dir * Time.fixedDeltaTime * AirAcceleration, -AirMaxSpeed, AirMaxSpeed);
-			float downForce = rb.velocity.y>0? 0 : jumpDownwardsForce; //adds a small downwards force when going down 
-
-			//apply movement
-			if(AllowDepthJumping) {
-				rb.velocity = new Vector3(xpeed, rb.velocity.y - downForce, -inputDirection.y * ZSpeed);
-			} else {
-				rb.velocity = new Vector3(xpeed, rb.velocity.y - downForce, 0);
-			}
-		}
+		if (rb.velocity.y < 0.1f && playerState.currentState != UNITSTATE.KNOCKDOWN) animator.SetAnimatorBool("Falling", true);
 	}
 
-	//perform a jump
-	void Jump(){
+	//Прыжок
+	void Jump()
+	{
 		playerState.SetState(UNITSTATE.JUMPING);
 		JumpNextFixedUpdate = false;
 		jumpInProgress = true;
-		rb.velocity = Vector3.up * JumpForce;
+		rb.velocity = new Vector3(rb.velocity.x, JumpForce, rb.velocity.z);
 
 		//play animation
 		animator.SetAnimatorBool("JumpInProgress", true);
@@ -186,8 +181,9 @@ public class PlayerMovement : MonoBehaviour {
 		if(jumpUpVoice != "") GlobalAudioPlayer.PlaySFXAtPosition(jumpUpVoice, transform.position);
 	}
 
-	//player has landed after a jump
-	void HasLanded(){
+	//Приземление
+	void HasLanded()
+	{
 		jumpInProgress = false;
 		playerState.SetState(UNITSTATE.LAND);
 		rb.velocity = Vector2.zero;
@@ -208,14 +204,14 @@ public class PlayerMovement : MonoBehaviour {
 	#region controller input
 
 	//set current direction to input direction
-	void OnDirectionInputEvent(Vector2 dir, bool doubleTapActive) {
-
+	void OnDirectionInputEvent(Vector2 dir, bool doubleTapActive)
+	{
 		//ignore input when we are dead or when this state is not active
 		if(!MovementStates.Contains(playerState.currentState) || isDead) return;
 
 		//set current direction based on the input vector. Mathf.sign is used because we want the player to stay in the left or right direction when moving up/down)
-		int dir2 = Mathf.RoundToInt(Mathf.Sign((float)-inputDirection.x));
-		if(Mathf.Abs(inputDirection.x) > 0) SetDirection((DIRECTION)dir2);
+		//int dir2 = Mathf.RoundToInt(Mathf.Sign((float)-inputDirection.x));
+		//if(Mathf.Abs(inputDirection.x) > 0) SetDirection((DIRECTION)dir2);
 		inputDirection = dir;
 
 		//start running on double tap
@@ -262,12 +258,25 @@ public class PlayerMovement : MonoBehaviour {
 	}
 		
 	//look (and turns) towards a direction
-	public void TurnToCurrentDirection() {
-		if(currentDirection == DIRECTION.Right || currentDirection == DIRECTION.Left) {
+	public void TurnToCurrentDirection()
+	{
+
+		if (inputDirection != Vector2.zero)
+		{
+			Vector3 inputDirection3d = new Vector3(-inputDirection.y, 0f, inputDirection.x);
+
+
+			float turnSpeed = jumpInProgress ? jumpRotationSpeed : rotationSpeed;
+			transform.rotation = Quaternion.Slerp(a: transform.rotation, b: Quaternion.LookRotation(inputDirection3d), t: turnSpeed * Time.fixedDeltaTime);
+		}
+	
+		/*
+		if (currentDirection == DIRECTION.Right || currentDirection == DIRECTION.Left) {
 			float turnSpeed = jumpInProgress? jumpRotationSpeed : rotationSpeed;
 			Vector3 newDir = Vector3.RotateTowards(transform.forward, Vector3.forward * -(int)currentDirection, turnSpeed * Time.fixedDeltaTime, 0.0f);
 			transform.rotation = Quaternion.LookRotation(newDir);
 		}
+		*/
 	}
 
 	//update the direction based on the current input
