@@ -9,11 +9,11 @@ public class InputManager : MonoBehaviour {
 	
 	[Header("Input Type")]
 	public INPUTTYPE inputType;
-	public List<InputControl> keyBoardControls = new List<InputControl>(); // a list of keyboard control input
-	public List<InputControl> joypadControls = new List<InputControl>(); // a list of joypad control input
+	public List<InputControl> keyBoardControls = new List<InputControl>();      // a list of keyboard control input
+	public List<InputControl> joypadControls = new List<InputControl>();        // a list of joypad control input
 
 	[Header("Double Tap Settings")]
-	public float doubleTapSpeed = .3f;
+	public float doubleTapSpeed = 0.3f;
 	private float  lastInputTime = 0f;
 	private string lastInputAction = "";
 
@@ -27,64 +27,70 @@ public class InputManager : MonoBehaviour {
 	public static bool defendKeyDown;
 	private float doubleTapTime;
 
-	void Start(){
-
+	void Start()
+    {
 		//automatically enable touch controls on IOS or android
 		#if UNITY_IOS || UNITY_ANDROID
 			inputType = INPUTTYPE.TOUCHSCREEN;
 		#endif
 	}
-
-	public static void DirectionEvent(Vector2 dir, bool doubleTapActive){
-		if( onDirectionInputEvent != null) onDirectionInputEvent(dir, doubleTapActive);
-	}
-		
-	void Update(){
-
+    
+	void Update()
+    {
 		//use keyboard
 		if (inputType == INPUTTYPE.KEYBOARD) KeyboardControls();
 
 		//use joypad
 		if (inputType == INPUTTYPE.JOYPAD) JoyPadControls();
-
 	}
 
-	void KeyboardControls(){
+    public static void DirectionEvent(Vector2 dir, bool doubleTapActive)
+    {
+        if (onDirectionInputEvent != null) onDirectionInputEvent(dir, doubleTapActive);
+    }
+
+    void KeyboardControls()
+    {
 		float x = 0;
 		float y = 0;
 		bool doubleTapState = false;
 
-		foreach(InputControl inputControl in keyBoardControls){
-			if(onInputEvent == null) return;
+        foreach (InputControl inputControl in keyBoardControls)
+        {
+			if (onInputEvent == null) return;
 
 			//on keyboard key down
-			if(Input.GetKeyDown(inputControl.key)){
+			if (Input.GetKeyDown(inputControl.key))
+            {
 				doubleTapState = DetectDoubleTap(inputControl.Action);
 				onInputEvent(inputControl.Action, BUTTONSTATE.PRESS);
 			}
 
 			//on keyboard key up
-			if(Input.GetKeyUp(inputControl.key)){
+			if (Input.GetKeyUp(inputControl.key))
+            {
 				onInputEvent(inputControl.Action, BUTTONSTATE.RELEASE);
 			}
 				
 			//convert keyboard direction keys to x,y values (every frame)
-			if(Input.GetKey(inputControl.key)){
-				if(inputControl.Action == "Left") x = -1f;
-				else if(inputControl.Action == "Right") x = 1f;
-				else if(inputControl.Action == "Up") y = 1;
-				else if(inputControl.Action == "Down") y = -1;
+			if (Input.GetKey(inputControl.key))
+            {
+				if (inputControl.Action == "Left") x = -1f;
+				else if (inputControl.Action == "Right") x = 1f;
+				else if (inputControl.Action == "Up") y = 1f;
+				else if (inputControl.Action == "Down") y = -1f;
 			}
 
 			//defend key exception (checks the defend state every frame)
-			if(inputControl.Action == "Defend") defendKeyDown = Input.GetKey(inputControl.key);
+			if (inputControl.Action == "Defend") defendKeyDown = Input.GetKey(inputControl.key);
 		}
 
 		//send a direction event
 		DirectionEvent(new Vector2(x,y), doubleTapState);
 	}
 
-	void JoyPadControls(){
+	void JoyPadControls()
+    {
 		if(onInputEvent == null) return;
 
 		//on Joypad button press
@@ -117,7 +123,8 @@ public class InputManager : MonoBehaviour {
 	}
 
 	//returns true if a key double tap is detected
-	bool DetectDoubleTap(string action){
+	bool DetectDoubleTap(string action)
+    {
 		bool doubleTapDetected = ((Time.time - lastInputTime < doubleTapSpeed) && (lastInputAction == action));
 		lastInputAction = action;
 		lastInputTime = Time.time;
@@ -129,9 +136,10 @@ public class InputManager : MonoBehaviour {
 //    ENUMS
 //---------------
 [System.Serializable]
-public class InputControl {
+public class InputControl
+{
 	public string Action;
-	public INPUTTYPE inputType;
+	//public INPUTTYPE inputType;
 	public KeyCode key;
 }
 

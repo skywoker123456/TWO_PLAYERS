@@ -327,7 +327,7 @@ public class PlayerCombat : MonoBehaviour, IDamagable<DamageObject> {
 		lastAttackDirection = currentDirection;
 
 		//turn towards current input direction
-		TurnToDir(currentDirection);
+		//TurnToDir(currentDirection);
 
 		if(isGrounded) SetVelocity(Vector3.zero);
 		if(damageObject.forwardForce>0) animator.AddForce(damageObject.forwardForce);

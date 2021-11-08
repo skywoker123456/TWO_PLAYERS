@@ -17,8 +17,6 @@ public class PlayerMovement : MonoBehaviour {
 	public float walkSpeed = 3f;
 	public float runSpeed = 6f;
 	public float JumpForce = 8f;
-	public float AirAcceleration = 3f;
-	public float AirMaxSpeed = 3f;
 	public float rotationSpeed = 15f;
 	public float jumpRotationSpeed = 30f;
 	public float lookAheadDistance = 0.2f;
@@ -37,9 +35,8 @@ public class PlayerMovement : MonoBehaviour {
 
 	private bool isDead = false;
 	private bool JumpNextFixedUpdate;
-	private float jumpDownwardsForce = 0.3f;
 
-	//a list of states where movement can take place
+	//Список состояний в которых возможно движение
 	private List<UNITSTATE> MovementStates = new List<UNITSTATE> {
 		UNITSTATE.IDLE,
 		UNITSTATE.WALK,
@@ -50,44 +47,42 @@ public class PlayerMovement : MonoBehaviour {
 		UNITSTATE.DEFEND,
 	};
 
-	//--
-
-	void OnEnable() {
+	//Включени/выключение Событий инпута
+	void OnEnable()
+    {
 		InputManager.onInputEvent += OnInputEvent;
 		InputManager.onDirectionInputEvent += OnDirectionInputEvent;
 	}
 
-	void OnDisable() {
+	void OnDisable()
+    {
 		InputManager.onInputEvent -= OnInputEvent;
 		InputManager.onDirectionInputEvent -= OnDirectionInputEvent;
 	}
 
-	void Start(){
+	void Start()
+    {
+		//поиск компонентов
+		if (!animator) animator = GetComponentInChildren<UnitAnimator>();
+		if (!rb) rb = GetComponent<Rigidbody>();
+		if (!playerState) playerState = GetComponent<UnitState>();
+		if (!capsule) capsule = GetComponent<CapsuleCollider>();
 
-		//find components
-		if(!animator) animator = GetComponentInChildren<UnitAnimator>();
-		if(!rb) rb = GetComponent<Rigidbody>();
-		if(!playerState) playerState = GetComponent<UnitState>();
-		if(!capsule) capsule = GetComponent<CapsuleCollider>();
-
-		//error messages for missing components
-		if(!animator) Debug.LogError("No animator found inside " + gameObject.name);
-		if(!rb) Debug.LogError("No Rigidbody component found on " + gameObject.name);
-		if(!playerState) Debug.LogError("No UnitState component found on " + gameObject.name);
-		if(!capsule) Debug.LogError("No Capsule Collider found on " + gameObject.name);
-
+		//сообщения об ошибках
+		if (!animator) Debug.LogError("No animator found inside " + gameObject.name);
+		if (!rb) Debug.LogError("No Rigidbody component found on " + gameObject.name);
+		if (!playerState) Debug.LogError("No UnitState component found on " + gameObject.name);
+		if (!capsule) Debug.LogError("No Capsule Collider found on " + gameObject.name);
 	}
 
 	void FixedUpdate()
 	{
 		/////////////////////
 		//ТЕСТ//
-		Debug.Log("real player speed: " + rb.velocity.magnitude + " u/s");
-
+		Debug.Log("horizontal player speed: " + new Vector2(rb.velocity.x, rb.velocity.z).magnitude);
 		/////////////////////
 
-
-		//Если не разрешенное состояние playerState или игрок мертв -> выход
+		//если не разрешенное состояние playerState или игрок мертв -> выход
 		if (!MovementStates.Contains(playerState.currentState) || isDead) return;
 
 		//блок
@@ -97,34 +92,38 @@ public class PlayerMovement : MonoBehaviour {
 			return;
 		}
 
-		//start a jump
+		//прыжок
 		if (JumpNextFixedUpdate)
 		{
 			Jump();
 			return;
 		}
 
-		//land after a jump
-		if(jumpInProgress && IsGrounded()){
+		//приземление
+		if (jumpInProgress && IsGrounded())
+        {
 			HasLanded();
 			return;
 		}
 
-		//A short recovery time after landing
-		if(playerState.currentState == UNITSTATE.LAND && Time.time - landTime > landRecoveryTime) playerState.SetState(UNITSTATE.IDLE);
+        //восстановление после приземления, переход в IDLE
+        if (playerState.currentState == UNITSTATE.LAND && Time.time - landTime > landRecoveryTime) playerState.SetState(UNITSTATE.IDLE);
 
-		//air and ground Movement
+		//передвижение
 		bool isGrounded = IsGrounded();
 		animator.SetAnimatorBool("isGrounded", isGrounded);
-		if(isGrounded) animator.SetAnimatorBool("Falling", false);
+		if (isGrounded) animator.SetAnimatorBool("Falling", false);
 
-		if(isGrounded){
-			MoveGrounded();
-		} else {
+		if (isGrounded)
+        {
+            MoveGrounded();
+		}
+        else
+        {
 			MoveAirborne();
 		}
 
-		//always turn towards the current direction
+		//поворот к направлению инпута
 		TurnToCurrentDirection();
 	}
 
@@ -137,7 +136,7 @@ public class PlayerMovement : MonoBehaviour {
 		//если есть ригибоди и если инпут и перед игроком нет препятствия
 		if (rb != null && (inputDirection.sqrMagnitude > 0 && !WallInFront()))
 		{
-			//set movement speed to run speed or walk speed depending on the current state
+			//выбор скорости передвижения
 			float movementSpeed = playerState.currentState == UNITSTATE.RUN? runSpeed : walkSpeed;
 
 			rb.velocity = new Vector3(inputDirection.x * -movementSpeed, rb.velocity.y + Physics.gravity.y * Time.fixedDeltaTime, inputDirection.y * -movementSpeed);
@@ -145,21 +144,21 @@ public class PlayerMovement : MonoBehaviour {
 		}
 		else
 		{
-			//stop moving, but still apply gravity
+			//только граыитация, без движения
 			rb.velocity = new Vector3(0, rb.velocity.y + Physics.gravity.y * Time.fixedDeltaTime, 0);
 
 			if (animator) animator.SetAnimatorFloat("MovementSpeed", 0);
 			playerState.SetState(UNITSTATE.IDLE);
 		}
 
-		//sets the run state in the animator to true or false
+		//устанавливаем состояние бега в аниматор
 		animator.SetAnimatorBool("Run", playerState.currentState == UNITSTATE.RUN);
 	}
 
 	//Движение в воздухе
 	void MoveAirborne()
 	{
-		//falling down
+		//падение
 		if (rb.velocity.y < 0.1f && playerState.currentState != UNITSTATE.KNOCKDOWN) animator.SetAnimatorBool("Falling", true);
 	}
 
@@ -171,14 +170,14 @@ public class PlayerMovement : MonoBehaviour {
 		jumpInProgress = true;
 		rb.velocity = new Vector3(rb.velocity.x, JumpForce, rb.velocity.z);
 
-		//play animation
+		//анимация
 		animator.SetAnimatorBool("JumpInProgress", true);
 		animator.SetAnimatorBool("Run", false);
 		animator.SetAnimatorTrigger("JumpUp");
 		animator.ShowDustEffectJump();
 
-		//play sfx
-		if(jumpUpVoice != "") GlobalAudioPlayer.PlaySFXAtPosition(jumpUpVoice, transform.position);
+		//звук
+		if (jumpUpVoice != "") GlobalAudioPlayer.PlaySFXAtPosition(jumpUpVoice, transform.position);
 	}
 
 	//Приземление
@@ -189,46 +188,44 @@ public class PlayerMovement : MonoBehaviour {
 		rb.velocity = Vector2.zero;
 		landTime = Time.time;
 
-		//set animator properties
+		//настройки аниматора
 		animator.SetAnimatorFloat("MovementSpeed", 0f);
 		animator.SetAnimatorBool("JumpInProgress", false);
 		animator.SetAnimatorBool("JumpKickActive", false);
 		animator.SetAnimatorBool("Falling", false);
 		animator.ShowDustEffectLand();
 
-		//sfx
+		//звук
 		GlobalAudioPlayer.PlaySFX("FootStep");
-		if(jumpLandVoice != "") GlobalAudioPlayer.PlaySFXAtPosition(jumpLandVoice, transform.position);
+		if (jumpLandVoice != "") GlobalAudioPlayer.PlaySFXAtPosition(jumpLandVoice, transform.position);
 	}
 
-	#region controller input
+    #region controller input
 
-	//set current direction to input direction
-	void OnDirectionInputEvent(Vector2 dir, bool doubleTapActive)
+    //Событие инпута направления
+    void OnDirectionInputEvent(Vector2 dir, bool doubleTapActive)
 	{
 		//ignore input when we are dead or when this state is not active
-		if(!MovementStates.Contains(playerState.currentState) || isDead) return;
+		if (!MovementStates.Contains(playerState.currentState) || isDead) return;
 
-		//set current direction based on the input vector. Mathf.sign is used because we want the player to stay in the left or right direction when moving up/down)
-		//int dir2 = Mathf.RoundToInt(Mathf.Sign((float)-inputDirection.x));
-		//if(Mathf.Abs(inputDirection.x) > 0) SetDirection((DIRECTION)dir2);
-		inputDirection = dir;
+		//set current direction based on the input vector
+		inputDirection = dir.normalized;
 
 		//start running on double tap
-		if(doubleTapActive && IsGrounded() && Mathf.Abs(dir.x)>0) playerState.SetState(UNITSTATE.RUN);
+		if (doubleTapActive && IsGrounded()) playerState.SetState(UNITSTATE.RUN);
 	}
 
-	//input actions
-	void OnInputEvent(string action, BUTTONSTATE buttonState) {
-
+	//Событие инпута кнопок
+	void OnInputEvent(string action, BUTTONSTATE buttonState)
+    {
 		//ignore input when we are dead or when this state is not active
-		if(!MovementStates.Contains(playerState.currentState) || isDead) return;
+		if (!MovementStates.Contains(playerState.currentState) || isDead) return;
 
 		//start a jump
-		if(action == "Jump" && buttonState == BUTTONSTATE.PRESS && IsGrounded() && playerState.currentState != UNITSTATE.JUMPING) JumpNextFixedUpdate = true;
+		if (action == "Jump" && buttonState == BUTTONSTATE.PRESS && IsGrounded() && playerState.currentState != UNITSTATE.JUMPING) JumpNextFixedUpdate = true;
 
 		//start running when a run button is pressed (e.g. Joypad controls)
-		if(action == "Run") playerState.SetState(UNITSTATE.RUN);
+		//if (action == "Run") playerState.SetState(UNITSTATE.RUN);
 	}
 
 	#endregion
@@ -265,11 +262,9 @@ public class PlayerMovement : MonoBehaviour {
 		{
 			Vector3 inputDirection3d = new Vector3(-inputDirection.y, 0f, inputDirection.x);
 
-
 			float turnSpeed = jumpInProgress ? jumpRotationSpeed : rotationSpeed;
 			transform.rotation = Quaternion.Slerp(a: transform.rotation, b: Quaternion.LookRotation(inputDirection3d), t: turnSpeed * Time.fixedDeltaTime);
 		}
-	
 		/*
 		if (currentDirection == DIRECTION.Right || currentDirection == DIRECTION.Left) {
 			float turnSpeed = jumpInProgress? jumpRotationSpeed : rotationSpeed;
@@ -279,16 +274,11 @@ public class PlayerMovement : MonoBehaviour {
 		*/
 	}
 
-	//update the direction based on the current input
-	public void updateDirection() {
-		TurnToCurrentDirection();
-	}
 
-	//the player has died
-	void Death() {
+	/*void Kill() {
 		isDead = true;
 		rb.velocity = Vector3.zero;
-	}
+	}*/
 
 	//returns true if there is a environment collider in front of us
 	bool WallInFront() {
@@ -307,7 +297,8 @@ public class PlayerMovement : MonoBehaviour {
 
 	//draw a lookahead sphere in the unity editor
 	#if UNITY_EDITOR
-	void OnDrawGizmos() {
+	void OnDrawGizmos()
+    {
 		var c = GetComponent<CapsuleCollider>();
 		Gizmos.color = Color.yellow;
 		Vector3 MovementOffset = new Vector3(inputDirection.x, 0, inputDirection.y) * lookAheadDistance;
@@ -316,7 +307,8 @@ public class PlayerMovement : MonoBehaviour {
 	#endif
 }
 
-public enum DIRECTION {
+public enum DIRECTION
+{
 	Right = -1,
 	Left = 1,
 	Up = 2,
