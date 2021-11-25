@@ -167,7 +167,7 @@ public class EnemyActions : MonoBehaviour {
 
 		//don't attack when player is jumping
 		var playerMovement = target.GetComponent<PlayerMovement>();
-		if (!AttackPlayerAirborne && playerMovement != null && playerMovement.jumpInProgress) {
+		if (!AttackPlayerAirborne && playerMovement != null && playerMovement.JumpInProgress) {
 			return;
 
 		} else {

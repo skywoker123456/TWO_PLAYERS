@@ -9,35 +9,36 @@ public class PlayerMovement : MonoBehaviour {
 
 	[Header("Linked Components")]
 	private UnitAnimator animator;
-	private Rigidbody rb;
+	private Rigidbody rigidbody;
 	private UnitState playerState;
-	private CapsuleCollider capsule;
+	private CapsuleCollider collider;
 
 	[Header("Settings")]
-	public float walkSpeed = 3f;
-	public float runSpeed = 6f;
+	public float WalkSpeed = 3f;
+	public float RunSpeed = 6f;
 	public float JumpForce = 8f;
-	public float rotationSpeed = 15f;
-	public float jumpRotationSpeed = 30f;
-	public float lookAheadDistance = 0.2f;
-	public float landRecoveryTime = 0.1f;
-	public float landTime = 0f;
+	public float RotationSpeed = 15f;
+	public float JumpRotationSpeed = 30f;
+	public float LookAheadDistance = 0.2f;
+	public float LandRecoveryTime = 0.1f;
+	public float LandTime = 0f;
 	public LayerMask CollisionLayer;
 
 	[Header("Audio")]
-	public string jumpUpVoice = "";
-	public string jumpLandVoice = "";
+	public string JumpUpVoice = "";
+	public string JumpLandVoice = "";
 
 	[Header("Stats")]
-	public DIRECTION currentDirection;
-	public Vector2 inputDirection;
-	public bool jumpInProgress;
+	public DIRECTION CurrentDirection;
+	public Vector2 InputDirection;
+	public bool JumpInProgress;
 
 	private bool isDead = false;
-	private bool JumpNextFixedUpdate;
+	private bool jumpNextFixedUpdate;
 
 	//Список состояний в которых возможно движение
-	private List<UNITSTATE> MovementStates = new List<UNITSTATE> {
+	private List<UNITSTATE> movementStates = new List<UNITSTATE>
+	{
 		UNITSTATE.IDLE,
 		UNITSTATE.WALK,
 		UNITSTATE.RUN,
@@ -64,26 +65,26 @@ public class PlayerMovement : MonoBehaviour {
     {
 		//поиск компонентов
 		if (!animator) animator = GetComponentInChildren<UnitAnimator>();
-		if (!rb) rb = GetComponent<Rigidbody>();
+		if (!rigidbody) rigidbody = GetComponent<Rigidbody>();
 		if (!playerState) playerState = GetComponent<UnitState>();
-		if (!capsule) capsule = GetComponent<CapsuleCollider>();
+		if (!collider) collider = GetComponent<CapsuleCollider>();
 
 		//сообщения об ошибках
 		if (!animator) Debug.LogError("No animator found inside " + gameObject.name);
-		if (!rb) Debug.LogError("No Rigidbody component found on " + gameObject.name);
+		if (!rigidbody) Debug.LogError("No Rigidbody component found on " + gameObject.name);
 		if (!playerState) Debug.LogError("No UnitState component found on " + gameObject.name);
-		if (!capsule) Debug.LogError("No Capsule Collider found on " + gameObject.name);
+		if (!collider) Debug.LogError("No Capsule Collider found on " + gameObject.name);
 	}
 
 	void FixedUpdate()
 	{
 		/////////////////////
 		//ТЕСТ//
-		Debug.Log("horizontal player speed: " + new Vector2(rb.velocity.x, rb.velocity.z).magnitude);
+		//Debug.Log("horizontal player speed: " + new Vector2(rb.velocity.x, rb.velocity.z).magnitude);
 		/////////////////////
 
 		//если не разрешенное состояние playerState или игрок мертв -> выход
-		if (!MovementStates.Contains(playerState.currentState) || isDead) return;
+		if (!movementStates.Contains(playerState.currentState) || isDead) return;
 
 		//блок
 		if (playerState.currentState == UNITSTATE.DEFEND)
@@ -93,21 +94,21 @@ public class PlayerMovement : MonoBehaviour {
 		}
 
 		//прыжок
-		if (JumpNextFixedUpdate)
+		if (jumpNextFixedUpdate)
 		{
 			Jump();
 			return;
 		}
 
 		//приземление
-		if (jumpInProgress && IsGrounded())
+		if (JumpInProgress && IsGrounded())
         {
 			HasLanded();
 			return;
 		}
 
         //восстановление после приземления, переход в IDLE
-        if (playerState.currentState == UNITSTATE.LAND && Time.time - landTime > landRecoveryTime) playerState.SetState(UNITSTATE.IDLE);
+        if (playerState.currentState == UNITSTATE.LAND && Time.time - LandTime > LandRecoveryTime) playerState.SetState(UNITSTATE.IDLE);
 
 		//передвижение
 		bool isGrounded = IsGrounded();
@@ -133,19 +134,19 @@ public class PlayerMovement : MonoBehaviour {
 		//если приземляемся то ничего не делаем
 		if (playerState.currentState == UNITSTATE.LAND) return;
 
-		//если есть ригибоди и если инпут и перед игроком нет препятствия
-		if (rb != null && (inputDirection.sqrMagnitude > 0 && !WallInFront()))
+		//если есть ригибоди и если есть инпут и перед игроком нет препятствия
+		if (rigidbody != null && InputDirection.sqrMagnitude > 0 && !WallInFront())
 		{
 			//выбор скорости передвижения
-			float movementSpeed = playerState.currentState == UNITSTATE.RUN? runSpeed : walkSpeed;
+			float movementSpeed = playerState.currentState == UNITSTATE.RUN? RunSpeed : WalkSpeed;
 
-			rb.velocity = new Vector3(inputDirection.x * -movementSpeed, rb.velocity.y + Physics.gravity.y * Time.fixedDeltaTime, inputDirection.y * -movementSpeed);
-			if (animator) animator.SetAnimatorFloat("MovementSpeed", rb.velocity.magnitude);
+			rigidbody.velocity = new Vector3(InputDirection.x * -movementSpeed, rigidbody.velocity.y + Physics.gravity.y * Time.fixedDeltaTime, InputDirection.y * -movementSpeed);
+			if (animator) animator.SetAnimatorFloat("MovementSpeed", rigidbody.velocity.magnitude);
 		}
 		else
 		{
 			//только граыитация, без движения
-			rb.velocity = new Vector3(0, rb.velocity.y + Physics.gravity.y * Time.fixedDeltaTime, 0);
+			rigidbody.velocity = new Vector3(0, rigidbody.velocity.y + Physics.gravity.y * Time.fixedDeltaTime, 0);
 
 			if (animator) animator.SetAnimatorFloat("MovementSpeed", 0);
 			playerState.SetState(UNITSTATE.IDLE);
@@ -159,16 +160,16 @@ public class PlayerMovement : MonoBehaviour {
 	void MoveAirborne()
 	{
 		//падение
-		if (rb.velocity.y < 0.1f && playerState.currentState != UNITSTATE.KNOCKDOWN) animator.SetAnimatorBool("Falling", true);
+		if (rigidbody.velocity.y < 0.1f && playerState.currentState != UNITSTATE.KNOCKDOWN) animator.SetAnimatorBool("Falling", true);
 	}
 
 	//Прыжок
 	void Jump()
 	{
 		playerState.SetState(UNITSTATE.JUMPING);
-		JumpNextFixedUpdate = false;
-		jumpInProgress = true;
-		rb.velocity = new Vector3(rb.velocity.x, JumpForce, rb.velocity.z);
+		jumpNextFixedUpdate = false;
+		JumpInProgress = true;
+		rigidbody.velocity = new Vector3(rigidbody.velocity.x, JumpForce, rigidbody.velocity.z);
 
 		//анимация
 		animator.SetAnimatorBool("JumpInProgress", true);
@@ -177,16 +178,16 @@ public class PlayerMovement : MonoBehaviour {
 		animator.ShowDustEffectJump();
 
 		//звук
-		if (jumpUpVoice != "") GlobalAudioPlayer.PlaySFXAtPosition(jumpUpVoice, transform.position);
+		if (JumpUpVoice != "") GlobalAudioPlayer.PlaySFXAtPosition(JumpUpVoice, transform.position);
 	}
 
 	//Приземление
 	void HasLanded()
 	{
-		jumpInProgress = false;
+		JumpInProgress = false;
 		playerState.SetState(UNITSTATE.LAND);
-		rb.velocity = Vector2.zero;
-		landTime = Time.time;
+		rigidbody.velocity = Vector2.zero;
+		LandTime = Time.time;
 
 		//настройки аниматора
 		animator.SetAnimatorFloat("MovementSpeed", 0f);
@@ -197,7 +198,7 @@ public class PlayerMovement : MonoBehaviour {
 
 		//звук
 		GlobalAudioPlayer.PlaySFX("FootStep");
-		if (jumpLandVoice != "") GlobalAudioPlayer.PlaySFXAtPosition(jumpLandVoice, transform.position);
+		if (JumpLandVoice != "") GlobalAudioPlayer.PlaySFXAtPosition(JumpLandVoice, transform.position);
 	}
 
     #region controller input
@@ -206,10 +207,10 @@ public class PlayerMovement : MonoBehaviour {
     void OnDirectionInputEvent(Vector2 dir, bool doubleTapActive)
 	{
 		//ignore input when we are dead or when this state is not active
-		if (!MovementStates.Contains(playerState.currentState) || isDead) return;
+		if (!movementStates.Contains(playerState.currentState) || isDead) return;
 
 		//set current direction based on the input vector
-		inputDirection = dir.normalized;
+		InputDirection = dir.normalized;
 
 		//start running on double tap
 		if (doubleTapActive && IsGrounded()) playerState.SetState(UNITSTATE.RUN);
@@ -219,10 +220,10 @@ public class PlayerMovement : MonoBehaviour {
 	void OnInputEvent(string action, BUTTONSTATE buttonState)
     {
 		//ignore input when we are dead or when this state is not active
-		if (!MovementStates.Contains(playerState.currentState) || isDead) return;
+		if (!movementStates.Contains(playerState.currentState) || isDead) return;
 
 		//start a jump
-		if (action == "Jump" && buttonState == BUTTONSTATE.PRESS && IsGrounded() && playerState.currentState != UNITSTATE.JUMPING) JumpNextFixedUpdate = true;
+		if (action == "Jump" && buttonState == BUTTONSTATE.PRESS && IsGrounded() && playerState.currentState != UNITSTATE.JUMPING) jumpNextFixedUpdate = true;
 
 		//start running when a run button is pressed (e.g. Joypad controls)
 		//if (action == "Run") playerState.SetState(UNITSTATE.RUN);
@@ -232,37 +233,37 @@ public class PlayerMovement : MonoBehaviour {
 		
 	//interrups an ongoing jump
 	public void CancelJump(){
-		jumpInProgress = false;
+		JumpInProgress = false;
 	}
 		
 	//set current direction
 	public void SetDirection(DIRECTION dir) {
-		currentDirection = dir;
-		if(animator) animator.currentDirection = currentDirection;
+		CurrentDirection = dir;
+		if(animator) animator.currentDirection = CurrentDirection;
 	}
 
 	//returns the current direction
 	public DIRECTION getCurrentDirection() {
-		return currentDirection;
+		return CurrentDirection;
 	}
 
 	//returns true if the player is grounded
 	public bool IsGrounded() {
 
 		//check for capsule collisions with a 0.1 downwards offset from the capsule collider
-		Vector3 bottomCapsulePos = transform.position + (Vector3.up) * (capsule.radius - 0.1f);
-		return Physics.CheckCapsule(transform.position + capsule.center, bottomCapsulePos, capsule.radius, CollisionLayer);
+		Vector3 bottomCapsulePos = transform.position + (Vector3.up) * (collider.radius - 0.1f);
+		return Physics.CheckCapsule(transform.position + collider.center, bottomCapsulePos, collider.radius, CollisionLayer);
 	}
 		
 	//look (and turns) towards a direction
 	public void TurnToCurrentDirection()
 	{
 
-		if (inputDirection != Vector2.zero)
+		if (InputDirection != Vector2.zero)
 		{
-			Vector3 inputDirection3d = new Vector3(-inputDirection.y, 0f, inputDirection.x);
+			Vector3 inputDirection3d = new Vector3(-InputDirection.y, 0f, InputDirection.x);
 
-			float turnSpeed = jumpInProgress ? jumpRotationSpeed : rotationSpeed;
+			float turnSpeed = JumpInProgress ? JumpRotationSpeed : RotationSpeed;
 			transform.rotation = Quaternion.Slerp(a: transform.rotation, b: Quaternion.LookRotation(inputDirection3d), t: turnSpeed * Time.fixedDeltaTime);
 		}
 		/*
@@ -274,15 +275,21 @@ public class PlayerMovement : MonoBehaviour {
 		*/
 	}
 
+	//update the direction based on the current input		?????
+	/*public void updateDirection()
+	{
+		TurnToCurrentDirection();
+	}*/
 
-	/*void Kill() {
+	/*void Death()										?????
+	 *{
 		isDead = true;
 		rb.velocity = Vector3.zero;
 	}*/
 
 	//returns true if there is a environment collider in front of us
 	bool WallInFront() {
-		var MovementOffset = new Vector3(inputDirection.x, 0, inputDirection.y) * lookAheadDistance;
+		var MovementOffset = new Vector3(InputDirection.x, 0, InputDirection.y) * LookAheadDistance;
 		var c = GetComponent<CapsuleCollider>();
 		Collider[] hitColliders = Physics.OverlapSphere(transform.position + Vector3.up * (c.radius + .1f) + -MovementOffset, c.radius, CollisionLayer);
 
@@ -301,7 +308,7 @@ public class PlayerMovement : MonoBehaviour {
     {
 		var c = GetComponent<CapsuleCollider>();
 		Gizmos.color = Color.yellow;
-		Vector3 MovementOffset = new Vector3(inputDirection.x, 0, inputDirection.y) * lookAheadDistance;
+		Vector3 MovementOffset = new Vector3(InputDirection.x, 0, InputDirection.y) * LookAheadDistance;
 		Gizmos.DrawWireSphere(transform.position + Vector3.up * (c.radius + .1f) + -MovementOffset, c.radius);
 	}
 	#endif
