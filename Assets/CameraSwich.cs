@@ -14,6 +14,7 @@ public class CameraSwich : MonoBehaviour
   
     private void OnTriggerEnter(Collider other)
     {
+        /*
         if (other.gameObject.tag == "Player")
         {
             if (!other.GetComponent<PlayerMovement>().cameraChenge)
@@ -29,6 +30,7 @@ public class CameraSwich : MonoBehaviour
                 other.GetComponent<PlayerMovement>().cameraChenge = false;
             }
         }
+        */
     }
 
 }

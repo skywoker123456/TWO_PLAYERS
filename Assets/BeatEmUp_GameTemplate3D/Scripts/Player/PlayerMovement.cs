@@ -51,14 +51,14 @@ public class PlayerMovement : MonoBehaviour {
 	//Включени/выключение Событий инпута
 	void OnEnable()
     {
-		InputManager.onInputEvent += OnInputEvent;
-		InputManager.onDirectionInputEvent += OnDirectionInputEvent;
+		NewInputManager.onInputEvent += OnInputEvent;
+		NewInputManager.onDirectionInputEvent += OnDirectionInputEvent;
 	}
 
 	void OnDisable()
     {
-		InputManager.onInputEvent -= OnInputEvent;
-		InputManager.onDirectionInputEvent -= OnDirectionInputEvent;
+		NewInputManager.onInputEvent -= OnInputEvent;
+		NewInputManager.onDirectionInputEvent -= OnDirectionInputEvent;
 	}
 
 	void Start()

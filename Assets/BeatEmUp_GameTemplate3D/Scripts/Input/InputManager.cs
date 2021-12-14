@@ -55,25 +55,26 @@ public class InputManager : MonoBehaviour {
 		float y = 0;
 		bool doubleTapState = false;
 
+		//Перебор 
         foreach (InputControl inputControl in keyBoardControls)
         {
 			if (onInputEvent == null) return;
 
 			//on keyboard key down
-			if (Input.GetKeyDown(inputControl.key))
+			if (Input.GetKeyDown(inputControl.Key))
             {
 				doubleTapState = DetectDoubleTap(inputControl.Action);
 				onInputEvent(inputControl.Action, BUTTONSTATE.PRESS);
 			}
 
 			//on keyboard key up
-			if (Input.GetKeyUp(inputControl.key))
+			if (Input.GetKeyUp(inputControl.Key))
             {
 				onInputEvent(inputControl.Action, BUTTONSTATE.RELEASE);
 			}
 				
 			//convert keyboard direction keys to x,y values (every frame)
-			if (Input.GetKey(inputControl.key))
+			if (Input.GetKey(inputControl.Key))
             {
 				if (inputControl.Action == "Left") x = -1f;
 				else if (inputControl.Action == "Right") x = 1f;
@@ -82,7 +83,7 @@ public class InputManager : MonoBehaviour {
 			}
 
 			//defend key exception (checks the defend state every frame)
-			if (inputControl.Action == "Defend") defendKeyDown = Input.GetKey(inputControl.key);
+			if (inputControl.Action == "Defend") defendKeyDown = Input.GetKey(inputControl.Key);
 		}
 
 		//send a direction event
@@ -95,10 +96,10 @@ public class InputManager : MonoBehaviour {
 
 		//on Joypad button press
 		foreach(InputControl inputControl in joypadControls){
-			if(Input.GetKeyDown(inputControl.key)) onInputEvent(inputControl.Action,BUTTONSTATE.PRESS);
+			if(Input.GetKeyDown(inputControl.Key)) onInputEvent(inputControl.Action,BUTTONSTATE.PRESS);
 
 			//defend key exception (checks the defend state every frame)
-			if(inputControl.Action == "Defend") defendKeyDown = Input.GetKey(inputControl.key);
+			if(inputControl.Action == "Defend") defendKeyDown = Input.GetKey(inputControl.Key);
 		}
 
 		//get Joypad  direction axis
@@ -135,6 +136,7 @@ public class InputManager : MonoBehaviour {
 //---------------
 //    ENUMS
 //---------------
+/*
 [System.Serializable]
 public class InputControl
 {
@@ -154,6 +156,7 @@ public enum BUTTONSTATE {
 	RELEASE = 5,	
 	HOLD = 10, 
 }
+*/
 
 //-------------
 //   EDITOR SCRIPT
@@ -179,7 +182,7 @@ public class InputManagerEditor : Editor {
 			foreach(InputControl inputControl in inputManager.keyBoardControls){
 				GUILayout.BeginHorizontal();
 				inputControl.Action = EditorGUILayout.TextField("Action:", inputControl.Action);
-				inputControl.key = (KeyCode)EditorGUILayout.EnumPopup("Key:", inputControl.key, GUILayout.Width(350));
+				inputControl.Key = (KeyCode)EditorGUILayout.EnumPopup("Key:", inputControl.Key, GUILayout.Width(350));
 				GUILayout.EndHorizontal();
 			}
 		}
@@ -192,7 +195,7 @@ public class InputManagerEditor : Editor {
 			foreach(InputControl inputControl in inputManager.joypadControls){
 				GUILayout.BeginHorizontal();
 				inputControl.Action = EditorGUILayout.TextField("Action:", inputControl.Action);
-				inputControl.key = (KeyCode)EditorGUILayout.EnumPopup("Key:", inputControl.key, GUILayout.Width(350));
+				inputControl.Key = (KeyCode)EditorGUILayout.EnumPopup("Key:", inputControl.Key, GUILayout.Width(350));
 				GUILayout.EndHorizontal();
 			}
 		}

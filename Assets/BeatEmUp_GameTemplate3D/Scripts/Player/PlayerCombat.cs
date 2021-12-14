@@ -121,13 +121,13 @@ public class PlayerCombat : MonoBehaviour, IDamagable<DamageObject> {
 	//---
 
 	void OnEnable(){
-		InputManager.onInputEvent += OnInputEvent;
-		InputManager.onDirectionInputEvent += OnDirectionInputEvent;
+		NewInputManager.onInputEvent += OnInputEvent;
+		NewInputManager.onDirectionInputEvent += OnDirectionInputEvent;
 	}
 
 	void OnDisable() {
-		InputManager.onInputEvent -= OnInputEvent;
-		InputManager.onDirectionInputEvent -= OnDirectionInputEvent;
+		NewInputManager.onInputEvent -= OnInputEvent;
+		NewInputManager.onDirectionInputEvent -= OnDirectionInputEvent;
 	}
 
 	//awake
@@ -160,7 +160,7 @@ public class PlayerCombat : MonoBehaviour, IDamagable<DamageObject> {
 		if(animator) isGrounded = animator.animator.GetBool("isGrounded");
 
 		//update defence state every frame
-		Defend(InputManager.defendKeyDown);
+		Defend(NewInputManager.defendKeyDown);
 	}
 
 	//physics update
