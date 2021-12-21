@@ -23,8 +23,25 @@ public class NewInputManager : MonoBehaviour
 	public static bool defendKeyDown;
 	private float doubleTapTime;
 
+    [Header("Other Settings")]
+    public GameObject InputSettingsPrefab;
+    private GameObject inputSettingsPanel;
 
-	void Start() {}
+    public bool AllKeysDefined = false;
+
+
+    void Start()
+    {
+        //назначение клавиш
+        if (!AllKeysDefined) 
+        {
+            
+            //создаем панель
+            inputSettingsPanel = Instantiate(InputSettingsPrefab, GameObject.Find("Canvas").transform);
+            inputSettingsPanel.GetComponent<InputSettings>().InputManager = this;
+        }
+    }
+
 	void Update()
 	{
 		//выбор обработки ввода
