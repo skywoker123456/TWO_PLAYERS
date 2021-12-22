@@ -32,13 +32,15 @@ public class NewInputManager : MonoBehaviour
 
     void Start()
     {
-        //назначение клавиш
-        if (!AllKeysDefined) 
+        Debug.Log("INPUT MANAGER: Джойстики -> " + Input.GetJoystickNames());
+
+        //если кнопки не назначены
+        if (!AllKeysDefined)
         {
-            
-            //создаем панель
+            //создаем панель настройки
             inputSettingsPanel = Instantiate(InputSettingsPrefab, GameObject.Find("Canvas").transform);
             inputSettingsPanel.GetComponent<InputSettings>().InputManager = this;
+
         }
     }
 
@@ -117,7 +119,7 @@ public class NewInputManager : MonoBehaviour
 		float y = Input.GetAxis("Joypad Up-Down");
 
 		//send a direction event
-		//DirectionEvent(new Vector2(x, y).normalized, false);
+		DirectionEvent(new Vector2(x, y).normalized, false);
 	}
 
 	//returns true if a key double tap is detected
