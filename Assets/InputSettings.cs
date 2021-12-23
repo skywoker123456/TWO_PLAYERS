@@ -7,28 +7,50 @@ public class InputSettings : MonoBehaviour
 {
     public Text[] Texts;
 
-    public NewInputManager InputManager;
+    public NewInputManager InputManager;                    //ссылка на настраиваемый InputManager
 
-    public KeyCode[] AllKeyCodes;
+    public KeyCode[] AllKeyCodes;                           //массив всех кейкодов
+    public KeyCode[] JoystickKeyCodes = new KeyCode[20];    //массив
+    public KeyCode[] Joystick1KeyCodes = new KeyCode[20];   //массив
+    public KeyCode[] Joystick2KeyCodes = new KeyCode[20];   //массив
+    public KeyCode[] Joystick3KeyCodes = new KeyCode[20];   //массив
+    public KeyCode[] Joystick4KeyCodes = new KeyCode[20];   //массив
+    public KeyCode[] Joystick5KeyCodes = new KeyCode[20];   //массив
+    public KeyCode[] Joystick6KeyCodes = new KeyCode[20];   //массив
+    public KeyCode[] Joystick7KeyCodes = new KeyCode[20];   //массив
+    public KeyCode[] Joystick8KeyCodes = new KeyCode[20];   //массив
 
-    private int keyNumber = 0;
+
+    private int keyCounter = 0;
 
 
     void Start()
     {
+        //получение массивов кейкодов
+        AllKeyCodes = (KeyCode[])System.Enum.GetValues(typeof(KeyCode));
+        System.Array.Copy(AllKeyCodes, 146, JoystickKeyCodes, 0, 20);
+        System.Array.Copy(AllKeyCodes, 166, Joystick1KeyCodes, 0, 20);
+        System.Array.Copy(AllKeyCodes, 186, Joystick2KeyCodes, 0, 20);
+        System.Array.Copy(AllKeyCodes, 206, Joystick3KeyCodes, 0, 20);
+        System.Array.Copy(AllKeyCodes, 226, Joystick4KeyCodes, 0, 20);
+        System.Array.Copy(AllKeyCodes, 246, Joystick5KeyCodes, 0, 20);
+        System.Array.Copy(AllKeyCodes, 266, Joystick6KeyCodes, 0, 20);
+        System.Array.Copy(AllKeyCodes, 286, Joystick7KeyCodes, 0, 20);
+        System.Array.Copy(AllKeyCodes, 306, Joystick8KeyCodes, 0, 20);
+
+
         for (int i = 0; i < Texts.Length; i++)
         {
             Texts[i].text = InputManager.KeyboardControls[i].Action;
         }
 
-        AllKeyCodes = (KeyCode[])System.Enum.GetValues(typeof(KeyCode));
     }
 
     void Update()
     {
         if (!InputManager.AllKeysDefined)
         {
-            Texts[keyNumber].text = InputManager.KeyboardControls[keyNumber].Action + "\t\t\tPress Button";
+            Texts[keyCounter].text = InputManager.KeyboardControls[keyCounter].Action + "\t\t\tPress Button";
 
             if (Input.anyKeyDown)
             {
@@ -38,12 +60,12 @@ public class InputSettings : MonoBehaviour
                     {
                         Debug.Log("KeyCode down: " + keyCode);
 
-                        InputManager.KeyboardControls[keyNumber].Key = keyCode;
-                        Texts[keyNumber].text = InputManager.KeyboardControls[keyNumber].Action + "\t\t\t" + InputManager.KeyboardControls[keyNumber].Key.ToString();
+                        InputManager.KeyboardControls[keyCounter].Key = keyCode;
+                        Texts[keyCounter].text = InputManager.KeyboardControls[keyCounter].Action + "\t\t\t" + InputManager.KeyboardControls[keyCounter].Key.ToString();
 
-                        keyNumber += 1;
+                        keyCounter += 1;
 
-                        if (keyNumber == Texts.Length) InputManager.AllKeysDefined = true;
+                        if (keyCounter == Texts.Length) InputManager.AllKeysDefined = true;
                     }
                 }
             }
