@@ -32,11 +32,6 @@ public class NewInputManager : MonoBehaviour
 
     void Start()
     {
-		for (int i = 0; i < Input.GetJoystickNames().Length; i++)
-		{
-			if (Input.GetJoystickNames()[i] == "")		Debug.Log("Joystick" + i + " NULL");
-			else										Debug.Log("Joystick" + i + " " + Input.GetJoystickNames()[i]);
-		}
 
 		//если кнопки не назначены
 		if (!AllKeysDefined)

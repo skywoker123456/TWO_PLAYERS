@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class InputSettings : MonoBehaviour
 {
+    [Header("Main Panel")]
     public Text[] Texts;
 
     public NewInputManager InputManager;                    //ссылка на настраиваемый InputManager
@@ -23,6 +24,15 @@ public class InputSettings : MonoBehaviour
 
     private int keyCounter = 0;
 
+    [Header("Info Panel")]
+    public GameObject InfoPanel;
+    private Text controllersList;
+
+
+    private void Awake()
+    {
+        controllersList = InfoPanel.transform.Find("ControllersList").GetComponent<Text>();
+    }
 
     void Start()
     {
@@ -44,6 +54,8 @@ public class InputSettings : MonoBehaviour
             Texts[i].text = InputManager.KeyboardControls[i].Action;
         }
 
+
+        UpdateInfoPanel();
     }
 
     void Update()
@@ -54,7 +66,7 @@ public class InputSettings : MonoBehaviour
 
             if (Input.anyKeyDown)
             {
-                foreach (KeyCode keyCode in AllKeyCodes)
+                foreach (KeyCode keyCode in AllKeyCodes)    //AllKeyCodes
                 {
                     if (Input.GetKey(keyCode))
                     {
@@ -70,6 +82,21 @@ public class InputSettings : MonoBehaviour
                 }
             }
         }
-        else Destroy(gameObject);               
+        else Destroy(gameObject);
+
+        UpdateInfoPanel();
+
+        //JoystickHorizontal
+        Debug.Log(Input.GetAxis("JoystickHorizontal"));
+    }
+
+    void UpdateInfoPanel()
+    {
+        controllersList.text = "";
+        for (int i = 0; i < Input.GetJoystickNames().Length; i++)
+        {
+            if (Input.GetJoystickNames()[i] == "")  controllersList.text += "Joystick" + i + ": NULL" + "\n";
+            else                                    controllersList.text += "Joystick" + i + ": " + Input.GetJoystickNames()[i] + "\n";
+        }
     }
 }
