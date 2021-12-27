@@ -87,7 +87,9 @@ public class InputSettings : MonoBehaviour
         UpdateInfoPanel();
 
         //JoystickHorizontal
-        Debug.Log(Input.GetAxis("JoystickHorizontal"));
+        //Debug.Log(Input.GetAxis("JoystickHorizontal"));
+        Joystick.GetJoysticks();
+
     }
 
     void UpdateInfoPanel()

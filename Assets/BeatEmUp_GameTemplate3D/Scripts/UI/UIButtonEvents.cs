@@ -64,7 +64,7 @@ public class UIButtonEvents : UISceneLoader, IPointerDownHandler, ISelectHandler
 
 		//ensure a button select even when a mouse takes the focus of a button away
 		if(inputManager == null) return;
-		if(inputManager.inputType == INPUTTYPE.JOYPAD || inputManager.inputType == INPUTTYPE.KEYBOARD){
+		if(inputManager.inputType == INPUTTYPE.JOYSTICK || inputManager.inputType == INPUTTYPE.KEYBOARD){
 			if(EventSystem.current.currentSelectedGameObject == null && selectOnStart) EventSystem.current.SetSelectedGameObject(gameObject);
 		}
 	}

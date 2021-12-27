@@ -41,7 +41,7 @@ public class InputManager : MonoBehaviour {
 		if (inputType == INPUTTYPE.KEYBOARD) KeyboardControls();
 
 		//use joypad
-		if (inputType == INPUTTYPE.JOYPAD) JoyPadControls();
+		if (inputType == INPUTTYPE.JOYSTICK) JoyPadControls();
 	}
 
     public static void DirectionEvent(Vector2 dir, bool doubleTapActive)
@@ -188,7 +188,7 @@ public class InputManagerEditor : Editor {
 		}
 
 		//joypad controls	
-		if(inputManager.inputType == INPUTTYPE.JOYPAD){
+		if(inputManager.inputType == INPUTTYPE.JOYSTICK){
 			EditorGUILayout.LabelField("Joypad Keys", EditorStyles.boldLabel);
 			EditorGUILayout.LabelField("* The direction keys are mapped onto the joypad thumbstick.");
 
@@ -207,20 +207,20 @@ public class InputManagerEditor : Editor {
 		}
 		GUILayout.Space(15);
 
-		if(inputManager.inputType == INPUTTYPE.KEYBOARD || inputManager.inputType == INPUTTYPE.JOYPAD){
+		if(inputManager.inputType == INPUTTYPE.KEYBOARD || inputManager.inputType == INPUTTYPE.JOYSTICK){
 			GUILayout.BeginHorizontal();
 			
 			//button: add a new action 
 			if(GUILayout.Button("Add Input Action", GUILayout.Width(130), GUILayout.Height(25))){
 				if(inputManager.inputType == INPUTTYPE.KEYBOARD) inputManager.keyBoardControls.Add(new InputControl());
-				if(inputManager.inputType == INPUTTYPE.JOYPAD) inputManager.joypadControls.Add(new InputControl());
+				if(inputManager.inputType == INPUTTYPE.JOYSTICK) inputManager.joypadControls.Add(new InputControl());
 			}
 
 			//button: delete last action 
-			bool showDeleteButton = (inputManager.inputType == INPUTTYPE.KEYBOARD && inputManager.keyBoardControls.Count>0) || (inputManager.inputType == INPUTTYPE.JOYPAD && inputManager.joypadControls.Count>0) ? true : false;
+			bool showDeleteButton = (inputManager.inputType == INPUTTYPE.KEYBOARD && inputManager.keyBoardControls.Count>0) || (inputManager.inputType == INPUTTYPE.JOYSTICK && inputManager.joypadControls.Count>0) ? true : false;
 			if(showDeleteButton && GUILayout.Button ("Delete Input Action", GUILayout.Width(130), GUILayout.Height(25))){
 				if(inputManager.inputType == INPUTTYPE.KEYBOARD && inputManager.keyBoardControls.Count>0) inputManager.keyBoardControls.RemoveAt(inputManager.keyBoardControls.Count-1);
-				if(inputManager.inputType == INPUTTYPE.JOYPAD && inputManager.joypadControls.Count>0) inputManager.joypadControls.RemoveAt(inputManager.joypadControls.Count-1);
+				if(inputManager.inputType == INPUTTYPE.JOYSTICK && inputManager.joypadControls.Count>0) inputManager.joypadControls.RemoveAt(inputManager.joypadControls.Count-1);
 			}
 
 			GUILayout.EndHorizontal();

@@ -4,10 +4,13 @@ using UnityEngine;
 
 public class NewInputManager : MonoBehaviour
 {
-	[Header("Controls Settings")]
+	[Header("Controllers Settings")]
 	public INPUTTYPE InputType;													//тип ввода
 	public List<InputControl> KeyboardControls = new List<InputControl>();      //массив кнопок клавиатуры
-	public List<InputControl> JoypadControls = new List<InputControl>();        //массив кнопок джойстика
+	public List<InputControl> JoystickControls = new List<InputControl>();        //массив кнопок джойстика
+	public int JoystickDeviceNumber = 0;
+	//public string GamepadHorizontalAxis = "Horizontal";
+	//public string GamepadVerticalAxis = "Vertical";
 
 	[Header("Double Tap Settings")]
 	public float doubleTapSpeed = 0.3f;
@@ -29,6 +32,8 @@ public class NewInputManager : MonoBehaviour
 
     public bool AllKeysDefined = false;
 
+	
+	
 
     void Start()
     {
@@ -47,7 +52,7 @@ public class NewInputManager : MonoBehaviour
 	{
 		//выбор обработки ввода
 		if (InputType == INPUTTYPE.KEYBOARD) UpdateKeyboardControls();
-		if (InputType == INPUTTYPE.JOYPAD) UpdateJoypadControls();
+		if (InputType == INPUTTYPE.JOYSTICK) UpdateJoystickControls();
 	}
 
 	public static void DirectionEvent(Vector2 dir, bool doubleTapActive)
@@ -100,12 +105,12 @@ public class NewInputManager : MonoBehaviour
 		//if (onDirectionInputEvent != null) onDirectionInputEvent(new Vector2(x, y), doubleTapState);
 	}
 
-	void UpdateJoypadControls()
+	void UpdateJoystickControls()
 	{
 		if (onInputEvent == null) return;
 
 		//on Joypad button press
-		foreach (InputControl inputControl in JoypadControls)
+		foreach (InputControl inputControl in JoystickControls)
 		{
 			if (Input.GetKeyDown(inputControl.Key)) onInputEvent(inputControl.Action, BUTTONSTATE.PRESS);
 
@@ -131,8 +136,27 @@ public class NewInputManager : MonoBehaviour
 	}
 }
 
+
 //---------------
 //    ENUMS
+//---------------
+public enum INPUTTYPE
+{
+	KEYBOARD = 0,
+	JOYSTICK = 5,
+	TOUCHSCREEN = 10,		//удалить
+}
+
+public enum BUTTONSTATE
+{
+	PRESS = 0,
+	RELEASE = 5,
+	HOLD = 10,				//реализовать
+}
+
+
+//---------------
+//    CLASSES
 //---------------
 [System.Serializable]
 public class InputControl
@@ -141,105 +165,36 @@ public class InputControl
 	public KeyCode Key;
 }
 
-public enum INPUTTYPE
+public class Joystick
 {
-	KEYBOARD = 0,
-	JOYPAD = 5,
-	TOUCHSCREEN = 10,
-}
+	public string Name;
+	public int DeviceNumber;
 
-public enum BUTTONSTATE
-{
-	PRESS = 0,
-	RELEASE = 5,
-	HOLD = 10,
-}
-
-//-------------
-//   EDITOR SCRIPT
-//-------------
-/*
-#if UNITY_EDITOR
-[CustomEditor(typeof(InputManager))]
-public class InputManagerEditor : Editor
-{
-
-	public override void OnInspectorGUI()
+	public static Joystick[] GetJoysticks()
 	{
-		InputManager inputManager = (InputManager)target;
-		EditorGUIUtility.labelWidth = 120;
-		EditorGUIUtility.fieldWidth = 100;
+		string[] joysticskNames = Input.GetJoystickNames();
+		Joystick[] joysticks = new Joystick[joysticskNames.Length];
+		int joysticksCount = 0;
 
-		//input type
-		GUILayout.Space(10);
-		EditorGUILayout.LabelField("Input Type", EditorStyles.boldLabel);
-		inputManager.inputType = (INPUTTYPE)EditorGUILayout.EnumPopup("Input Type:", inputManager.inputType);
-		GUILayout.Space(15);
-
-		//keyboard controls	
-		if (inputManager.inputType == INPUTTYPE.KEYBOARD)
+		for (int i = 0; i < joysticskNames.Length; i++)
 		{
-			EditorGUILayout.LabelField("Keyboard Keys", EditorStyles.boldLabel);
-			foreach (InputControl inputControl in inputManager.keyBoardControls)
+			if (!string.IsNullOrEmpty(joysticskNames[i]))	//IsNullOrWhiteSpace
 			{
-				GUILayout.BeginHorizontal();
-				inputControl.Action = EditorGUILayout.TextField("Action:", inputControl.Action);
-				inputControl.key = (KeyCode)EditorGUILayout.EnumPopup("Key:", inputControl.key, GUILayout.Width(350));
-				GUILayout.EndHorizontal();
-			}
+				joysticks[joysticksCount] = new Joystick();
+				joysticks[joysticksCount].Name = joysticskNames[i];
+				joysticks[joysticksCount].DeviceNumber = i;
+
+				joysticksCount += 1;
+			}	
 		}
 
-		//joypad controls	
-		if (inputManager.inputType == INPUTTYPE.JOYPAD)
+		Debug.Log("Connected Joysticks: " + joysticksCount);
+
+		if (joysticksCount > 0)
 		{
-			EditorGUILayout.LabelField("Joypad Keys", EditorStyles.boldLabel);
-			EditorGUILayout.LabelField("* The direction keys are mapped onto the joypad thumbstick.");
-
-			foreach (InputControl inputControl in inputManager.joypadControls)
-			{
-				GUILayout.BeginHorizontal();
-				inputControl.Action = EditorGUILayout.TextField("Action:", inputControl.Action);
-				inputControl.key = (KeyCode)EditorGUILayout.EnumPopup("Key:", inputControl.key, GUILayout.Width(350));
-				GUILayout.EndHorizontal();
-			}
+			System.Array.Resize(ref joysticks, joysticksCount);
+			return joysticks;
 		}
-
-		//touch Screen controls
-		if (inputManager.inputType == INPUTTYPE.TOUCHSCREEN)
-		{
-			EditorGUILayout.LabelField("* You can edit the touchscreen buttons in the 'UI' prefab in the project folder.");
-			EditorGUILayout.LabelField("   Inside the prefab go to: UI/Canvas/TouchScreenControls");
-		}
-		GUILayout.Space(15);
-
-		if (inputManager.inputType == INPUTTYPE.KEYBOARD || inputManager.inputType == INPUTTYPE.JOYPAD)
-		{
-			GUILayout.BeginHorizontal();
-
-			//button: add a new action 
-			if (GUILayout.Button("Add Input Action", GUILayout.Width(130), GUILayout.Height(25)))
-			{
-				if (inputManager.inputType == INPUTTYPE.KEYBOARD) inputManager.keyBoardControls.Add(new InputControl());
-				if (inputManager.inputType == INPUTTYPE.JOYPAD) inputManager.joypadControls.Add(new InputControl());
-			}
-
-			//button: delete last action 
-			bool showDeleteButton = (inputManager.inputType == INPUTTYPE.KEYBOARD && inputManager.keyBoardControls.Count > 0) || (inputManager.inputType == INPUTTYPE.JOYPAD && inputManager.joypadControls.Count > 0) ? true : false;
-			if (showDeleteButton && GUILayout.Button("Delete Input Action", GUILayout.Width(130), GUILayout.Height(25)))
-			{
-				if (inputManager.inputType == INPUTTYPE.KEYBOARD && inputManager.keyBoardControls.Count > 0) inputManager.keyBoardControls.RemoveAt(inputManager.keyBoardControls.Count - 1);
-				if (inputManager.inputType == INPUTTYPE.JOYPAD && inputManager.joypadControls.Count > 0) inputManager.joypadControls.RemoveAt(inputManager.joypadControls.Count - 1);
-			}
-
-			GUILayout.EndHorizontal();
-			GUILayout.Space(15);
-		}
-
-		//double tap settings
-		EditorGUILayout.LabelField("Double Tap Settings", EditorStyles.boldLabel);
-		inputManager.doubleTapSpeed = EditorGUILayout.FloatField("Double Tap Speed:", inputManager.doubleTapSpeed);
-		EditorUtility.SetDirty(inputManager);
+		else return null;
 	}
 }
-#endif
-*/

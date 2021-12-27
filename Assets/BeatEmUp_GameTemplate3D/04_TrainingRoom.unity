@@ -356,10 +356,40 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -1121864644548910471, guid: 7791f2e4aae8bfb409797a51e1915dbe,
         type: 3}
+      propertyPath: InputType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1121864644548910471, guid: 7791f2e4aae8bfb409797a51e1915dbe,
+        type: 3}
       propertyPath: InputSettingsPrefab
       value: 
       objectReference: {fileID: 6133730008224149296, guid: ea42852831c0a0a43ba446f3882dc146,
         type: 3}
+    - target: {fileID: -1121864644548910471, guid: 7791f2e4aae8bfb409797a51e1915dbe,
+        type: 3}
+      propertyPath: JoystickControls.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: -1121864644548910471, guid: 7791f2e4aae8bfb409797a51e1915dbe,
+        type: 3}
+      propertyPath: JoystickControls.Array.data[0].Action
+      value: Punch
+      objectReference: {fileID: 0}
+    - target: {fileID: -1121864644548910471, guid: 7791f2e4aae8bfb409797a51e1915dbe,
+        type: 3}
+      propertyPath: JoystickControls.Array.data[1].Action
+      value: Kick
+      objectReference: {fileID: 0}
+    - target: {fileID: -1121864644548910471, guid: 7791f2e4aae8bfb409797a51e1915dbe,
+        type: 3}
+      propertyPath: JoystickControls.Array.data[2].Action
+      value: Defend
+      objectReference: {fileID: 0}
+    - target: {fileID: -1121864644548910471, guid: 7791f2e4aae8bfb409797a51e1915dbe,
+        type: 3}
+      propertyPath: JoystickControls.Array.data[3].Action
+      value: Jump
+      objectReference: {fileID: 0}
     - target: {fileID: 1000012781959418, guid: 7791f2e4aae8bfb409797a51e1915dbe, type: 3}
       propertyPath: m_Name
       value: NewInputManager
@@ -652,6 +682,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1265633179}
     m_Modifications:
+    - target: {fileID: 5961616044356362783, guid: ea42852831c0a0a43ba446f3882dc146,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -5
+      objectReference: {fileID: 0}
     - target: {fileID: 6133730008224149296, guid: ea42852831c0a0a43ba446f3882dc146,
         type: 3}
       propertyPath: m_Name
